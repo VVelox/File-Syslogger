@@ -19,6 +19,7 @@ my %WriteMakefileArgs = (
 	PREREQ_PM => {
 		'POE::Wheel::FollowTail' => '1.368',
 		'TOML'                   => '0.97',
+		'Log::Syslog::Fast'      => '0.67',
 	},
 	dist       => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 	clean      => { FILES    => 'File-Syslogger-*' },

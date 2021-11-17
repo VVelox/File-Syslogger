@@ -3,19 +3,21 @@ package File::Syslogger;
 use 5.006;
 use strict;
 use warnings;
+use POE qw(Wheel::FollowTail);
+use Log::Syslog::Fast ':all';
+use Sys::Hostname;
 
 =head1 NAME
 
-File::Syslogger - The great new File::Syslogger!
+File::Syslogger - 
 
 =head1 VERSION
 
-Version 0.01
+Version 0.0,1
 
 =cut
 
 our $VERSION = '0.01';
-
 
 =head1 SYNOPSIS
 
@@ -25,28 +27,230 @@ Perhaps a little code snippet.
 
     use File::Syslogger;
 
-    my $foo = File::Syslogger->new();
-    ...
+    File::Syslogger->run(
+                         pri=>'alert',
+                         facility=>'daemon',
+                         files=>{
+                                 {'sagan_eve'}=>{file=>'/var/log/sagan/eve', program=>'sagan_eve'},
+                                 {'suricata_eve'}=>{file=>'/var/log/suricata/eve', program=>'suricata_eve'},
+                                 },
+                         );
 
-=head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head1 METHODS
 
-=head1 SUBROUTINES/METHODS
+=head2 run
 
-=head2 function1
+Initiates POE sessions and run them.
+
+This will die if there are any config issues.
+
+The following options are optionaal.
+
+    pri - The priority of the logged item.
+          Default is 'info'.
+    
+    facility - The facility for logging.
+               Default is 'daemon'.
+    
+    program - Name of the program logging.
+              Default is 'fileSyslogger'.
+
+The option files is a hash of hashes. It has one mandatory
+key, 'file', which is the file to follow. All the above
+options may be used in the sub hashes.
+
+For pri, below are the various valid values.
+
+    emerg
+    emergency
+    alert
+    crit
+    critical
+    err
+    error
+    warning
+    notice
+    info
+
+For facility, below are the various valid values.
+
+    kern
+    user
+    mail
+    daemon
+    auth
+    syslog
+    lpr
+    news
+    uucp
+    cron
+    authpriv
+    ftp
+    local0
+    local1
+    local2
+    local3
+    local4
+    local5
+    local6
+    local7
 
 =cut
 
-sub function1 {
-}
+sub run {
+	my ( $blank, %opts ) = @_;
 
-=head2 function2
+	if ( !defined( $opts{files} ) ) {
+		die('"files" is not defined');
+	}
 
-=cut
+	if ( ref( $opts{files} ) ne 'HASH' ) {
+		die("$opts{files} is not a hash");
+	}
 
-sub function2 {
+	if ( !defined( $opts{program} ) ) {
+		$opts{program} = 'fileSyslogger';
+	}
+
+	#mapping for severity for constant handling
+	my %sev_mapping = (
+		'emerg'     => LOG_EMERG,
+		'emergency' => LOG_EMERG,
+		'alert'     => LOG_ALERT,
+		'crit'      => LOG_CRIT,
+		'critical'  => LOG_CRIT,
+		'err'       => LOG_ERR,
+		'error'     => LOG_ERR,
+		'warning'   => LOG_WARNING,
+		'notice'    => LOG_NOTICE,
+		'info'      => LOG_INFO,
+	);
+
+	# default to info if none is specified
+	if ( !defined( $opts{pri} ) ) {
+		$opts{pri} = "info";
+	}
+	else {
+		# one was specified, convert to lower case and make sure it valid
+		$opts{facility} = lc( $opts{facility} );
+		if ( !defined( $sev_mapping{ $opts{pri} } ) ) {
+			die( '"' . $opts{pri} . '" is not a known facility' );
+		}
+	}
+
+	#mapping for facility for constant handling
+	my %fac_mapping = (
+		'kern'     => LOG_KERN,
+		'user'     => LOG_USER,
+		'mail'     => LOG_MAIL,
+		'daemon'   => LOG_DAEMON,
+		'auth'     => LOG_AUTH,
+		'syslog'   => LOG_SYSLOG,
+		'lpr'      => LOG_LPR,
+		'news'     => LOG_NEWS,
+		'uucp'     => LOG_UUCP,
+		'cron'     => LOG_CRON,
+		'authpriv' => LOG_AUTHPRIV,
+		'ftp'      => LOG_FTP,
+		'local0'   => LOG_LOCAL0,
+		'local1'   => LOG_LOCAL1,
+		'local2'   => LOG_LOCAL2,
+		'local3'   => LOG_LOCAL3,
+		'local4'   => LOG_LOCAL4,
+		'local5'   => LOG_LOCAL5,
+		'local6'   => LOG_LOCAL6,
+		'local7'   => LOG_LOCAL7,
+	);
+
+	# default to system if none is specified
+	if ( !defined( $opts{facility} ) ) {
+		$opts{facility} = 'system';
+	}
+	else {
+		# one was specified, convert to lower case and make sure it valid
+		$opts{facility} = lc( $opts{facility} );
+		if ( !defined( $fac_mapping{ $opts{facility} } ) ) {
+			die( '"' . $opts{facility} . '" is not a known facility' );
+		}
+	}
+
+	# process each file and setup the syslogger
+	my $file_count = 0;
+	foreach my $item ( keys( %{ $opts{files} } ) ) {
+
+		# make sure we have a file specified
+		if ( !defined( $opts{files}{$item}{file} ) ) {
+			die( 'No file specified for "' . $item . '"' );
+		}
+
+		# figure out what facility to use for this item
+		my $item_fac;
+		if ( defined( $opts{files}{$item}{facility} ) ) {
+
+			# make sure it is valid
+			$item_fac = lc( $opts{files}{$item}{facility} );
+			if ( !defined( $fac_mapping{ $opts{facility} } ) ) {
+				die( '"' . $item_fac . '" in "' . $item . '" is not a known facility' );
+			}
+		}
+		else {
+			# none specified, so using default
+			$item_fac = $opts{facility};
+		}
+
+		# figure out what facility to use for this item
+		my $item_pri;
+		if ( defined( $opts{files}{$item}{pri} ) ) {
+
+			# make sure it is valid
+			$item_pri = lc( $opts{files}{$item}{pri} );
+			if ( !defined( $fac_mapping{$item_pri} ) ) {
+				die( '"' . $item_pri . '" in "' . $item . '" is not a known facility' );
+			}
+		}
+		else {
+			# none specified, so using default
+			$item_pri = $opts{pri};
+		}
+
+		# figure out what program name to use
+		my $item_program;
+		if ( defined( $opts{files}{$item}{program} ) ) {
+			$item_program = $opts{files}{$item}{program};
+		}
+		else {
+			# none specified, so using default
+			$item_program = $opts{program};
+		}
+
+		# create the logger that will be used by the POE session
+		my $logger = Log::Syslog::Fast->new( LOG_UNIX, undef, undef, $item_fac, $item_pri, hostname, $item_program );
+
+		# create the POE session
+		POE::Session->create(
+			inline_states => {
+				_start => sub {
+					$_[HEAP]{tailor} = POE::Wheel::FollowTail->new(
+						Filename   => $_[HEAP]{file},
+						InputEvent => "got_log_line",
+					);
+				},
+				got_log_line => sub {
+					print "Log: $_[ARG0]\n";
+				},
+			},
+			heap => { file => $opts{files}{$item}{file}, logger => $logger },
+		);
+
+		$file_count++;
+	}
+
+	if ( $file_count == 0 ) {
+		die("No files specified");
+	}
+
+	POE::Kernel->run;
 }
 
 =head1 AUTHOR
@@ -102,4 +306,4 @@ This is free software, licensed under:
 
 =cut
 
-1; # End of File::Syslogger
+1;    # End of File::Syslogger
