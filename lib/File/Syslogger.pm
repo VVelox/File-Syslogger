@@ -9,21 +9,17 @@ use Sys::Hostname;
 
 =head1 NAME
 
-File::Syslogger - 
+File::Syslogger - Use POE to tail a file and read new lines into syslog.
 
 =head1 VERSION
 
-Version 0.0,1
+Version 0.0.1
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.0.1';
 
 =head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
 
     use File::Syslogger;
 
@@ -48,13 +44,16 @@ This will die if there are any config issues.
 The following options are optionaal.
 
     pri - The priority of the logged item.
-          Default is 'info'.
+          Default is 'notice'.
     
     facility - The facility for logging.
                Default is 'daemon'.
     
     program - Name of the program logging.
               Default is 'fileSyslogger'.
+    
+    socket - The syslogd socket.
+             Default is "/var/run/log"
 
 The option files is a hash of hashes. It has one mandatory
 key, 'file', which is the file to follow. All the above
@@ -113,6 +112,10 @@ sub run {
 		$opts{program} = 'fileSyslogger';
 	}
 
+	if (!defined( $opts{socket} )) {
+		$opts{socket}="/var/run/log";
+	}
+
 	#mapping for severity for constant handling
 	my %sev_mapping = (
 		'emerg'     => LOG_EMERG,
@@ -129,7 +132,7 @@ sub run {
 
 	# default to info if none is specified
 	if ( !defined( $opts{pri} ) ) {
-		$opts{pri} = "info";
+		$opts{pri} = "notice";
 	}
 	else {
 		# one was specified, convert to lower case and make sure it valid
@@ -165,7 +168,7 @@ sub run {
 
 	# default to system if none is specified
 	if ( !defined( $opts{facility} ) ) {
-		$opts{facility} = 'system';
+		$opts{facility} = 'daemon';
 	}
 	else {
 		# one was specified, convert to lower case and make sure it valid
@@ -198,6 +201,7 @@ sub run {
 			# none specified, so using default
 			$item_fac = $opts{facility};
 		}
+		$item_fac=$fac_mapping{$item_fac};
 
 		# figure out what facility to use for this item
 		my $item_pri;
@@ -213,6 +217,7 @@ sub run {
 			# none specified, so using default
 			$item_pri = $opts{pri};
 		}
+		$item_pri=$sev_mapping{$item_pri};
 
 		# figure out what program name to use
 		my $item_program;
@@ -225,7 +230,7 @@ sub run {
 		}
 
 		# create the logger that will be used by the POE session
-		my $logger = Log::Syslog::Fast->new( LOG_UNIX, undef, undef, $item_fac, $item_pri, hostname, $item_program );
+		my $logger = Log::Syslog::Fast->new( LOG_UNIX, $opts{socket}, 1, $item_fac, $item_pri, hostname, $item_program );
 
 		# create the POE session
 		POE::Session->create(
@@ -237,7 +242,7 @@ sub run {
 					);
 				},
 				got_log_line => sub {
-					print "Log: $_[ARG0]\n";
+					$_[HEAP]{logger}->send( $_[ARG0] );
 				},
 			},
 			heap => { file => $opts{files}{$item}{file}, logger => $logger },
