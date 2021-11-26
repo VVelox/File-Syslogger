@@ -21,15 +21,27 @@ my $pri;
 my $fac;
 my $socket;
 my $program;
+my $version_flag;
 GetOptions(
-	'p=s'  => \$pri,
-	'P=s'  => \$program,
-	'f=s'  => \$fac,
-	't=s'  => \$toml_file,
-	's=s'  => \$socket,
-	'h'    => \$help,
-	'help' => \$help,
+	'c=s'     => \$toml_file,
+	'h'       => \$help,
+	'help'    => \$help,
+	'v'       => \$version_flag,
+	'version' => \$version_flag,
 );
+
+if ($version_flag) {
+	print 'filesyslogger v. ' . $version . "\n";
+	exit 255;
+}
+
+if ($help) {
+	print 'filesyslogger v. ' . $version . '
+
+-c <config>    Config to use.
+';
+	exit 255;
+}
 
 # make sure the file exists
 if ( !-f $toml_file ) {
@@ -46,31 +58,18 @@ unless ($toml) {
 }
 
 # read in the defaults, letting the switches over ride
-if (
-	defined( $toml->{program} )
-	&&  !defined($program)  )
-{
+if ( defined( $toml->{program} ) ) {
 	$program = $toml->{program};
 }
-if (
-	defined( $toml->{'facility'} )
-	&&  !defined($fac)  )
-{
+if ( defined( $toml->{'facility'} ) ) {
 	$fac = $toml->{facility};
 }
-if (
-	defined( $toml->{priority} )
-	&&  !defined($pri)  )
-{
+if ( defined( $toml->{priority} ) ) {
 	$pri = $toml->{priority};
 }
-if (
-	defined( $toml->{socket} )
-	&&  !defined($socket)  )
-{
+if ( defined( $toml->{socket} ) ) {
 	$socket = $toml->{socket};
 }
-
 
 # process the config
 my %files;
@@ -80,6 +79,7 @@ while ( defined( $toml_keys[$int] ) ) {
 	my $item = $toml_keys[$int];
 
 	if ( ref( $toml->{$item} ) eq "HASH" ) {
+
 		# add the file in question
 		$files{$item} = $toml->{$item};
 	}
@@ -128,6 +128,73 @@ This is the config file to use. If not specified, '/usr/local/etc/filesyslogger.
 
 The file format used is TOML.
 
+The primary and optional keys are as below.
 
+    priority - The priority of the logged item.
+               Default is 'notice'.
+    
+    facility - The facility for logging.
+               Default is 'daemon'.
+    
+    program - Name of the program logging.
+              Default is 'fileSyslogger'.
+    
+    socket - The syslogd socket.
+             Default is "/var/run/log"
+
+Each file defined in a TOML table. The keys are as below.
+
+Each TOML table is used for specifying what files to tail
+and forward to syslog. It uses the same keys as above, minus
+'socket', but with the additional key 'file' for specifying
+what file.
+
+For priority, below are the various valid values.
+
+    emerg
+    emergency
+    alert
+    crit
+    critical
+    err
+    error
+    warning
+    notice
+    info
+
+For facility, below are the various valid values.
+
+    kern
+    user
+    mail
+    daemon
+    auth
+    syslog
+    lpr
+    news
+    uucp
+    cron
+    authpriv
+    ftp
+    local0
+    local1
+    local2
+    local3
+    local4
+    local5
+    local6
+    local7
+
+=head1 EXAMPLE
+
+    facility="daemon"
+    priority="alert"
+    socket="/var/run/log"
+    [sagan]
+    program="saganEve"
+    file="/var/log/sagan/eve"
+    [suricata]
+    program="suricataEve"
+    file="/var/log/suricata/eve"
 
 =cut
