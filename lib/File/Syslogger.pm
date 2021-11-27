@@ -27,11 +27,10 @@ our $VERSION = '0.0.1';
                          pri=>'alert',
                          facility=>'daemon',
                          files=>{
-                                 {'sagan_eve'}=>{file=>'/var/log/sagan/eve', program=>'sagan_eve'},
-                                 {'suricata_eve'}=>{file=>'/var/log/suricata/eve', program=>'suricata_eve'},
+                                 {'sagan_eve'}=>{file=>'/var/log/sagan/eve', program=>'saganEve'},
+                                 {'suricata_eve'}=>{file=>'/var/log/suricata/eve', program=>'suricataEve'},
                                  },
                          );
-
 
 =head1 METHODS
 
@@ -43,7 +42,7 @@ This will die if there are any config issues.
 
 The following options are optionaal.
 
-    pri - The priority of the logged item.
+    priority - The priority of the logged item.
           Default is 'notice'.
     
     facility - The facility for logging.
@@ -59,7 +58,7 @@ The option files is a hash of hashes. It has one mandatory
 key, 'file', which is the file to follow. All the above
 options may be used in the sub hashes.
 
-For pri, below are the various valid values.
+For priority, below are the various valid values.
 
     emerg
     emergency
@@ -131,14 +130,14 @@ sub run {
 	);
 
 	# default to info if none is specified
-	if ( !defined( $opts{pri} ) ) {
-		$opts{pri} = "notice";
+	if ( !defined( $opts{priority} ) ) {
+		$opts{priority} = "notice";
 	}
 	else {
 		# one was specified, convert to lower case and make sure it valid
-		$opts{facility} = lc( $opts{facility} );
-		if ( !defined( $sev_mapping{ $opts{pri} } ) ) {
-			die( '"' . $opts{pri} . '" is not a known facility' );
+		$opts{priority} = lc( $opts{priority} );
+		if ( !defined( $sev_mapping{ $opts{priority} } ) ) {
+			die( '"' . $opts{priority} . '" is not a known priority' );
 		}
 	}
 
@@ -205,17 +204,17 @@ sub run {
 
 		# figure out what facility to use for this item
 		my $item_pri;
-		if ( defined( $opts{files}{$item}{pri} ) ) {
+		if ( defined( $opts{files}{$item}{priority} ) ) {
 
 			# make sure it is valid
-			$item_pri = lc( $opts{files}{$item}{pri} );
+			$item_pri = lc( $opts{files}{$item}{priority} );
 			if ( !defined( $fac_mapping{$item_pri} ) ) {
 				die( '"' . $item_pri . '" in "' . $item . '" is not a known facility' );
 			}
 		}
 		else {
 			# none specified, so using default
-			$item_pri = $opts{pri};
+			$item_pri = $opts{priority};
 		}
 		$item_pri=$sev_mapping{$item_pri};
 
