@@ -13,11 +13,11 @@ File::Syslogger - Use POE to tail a file and read new lines into syslog.
 
 =head1 VERSION
 
-Version 0.0.1
+Version 0.0.2
 
 =cut
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 =head1 SYNOPSIS
 
@@ -93,6 +93,8 @@ For facility, below are the various valid values.
     local5
     local6
     local7
+
+File rotation should be picked up POE::Wheel::FollowTail.
 
 =cut
 

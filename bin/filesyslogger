@@ -100,27 +100,11 @@ filesyslogger - Tails the configured files and sends it to syslog.
 
 =head1 SYNOPSIS
 
-filesyslogger [B<-P> <program>] [B<-p> <priority>] [B<-f> <facility>] [B<-t> <config>] [B<-s> <socket>]
+filesyslogger [B<-c> <config>]
 
 =head1 FLAGS
 
-=head2 -P <program>
-
-The program name to use. If not specified, 'fileSyslogger' is used.
-
-=head2 -p <priority>
-
-The priority to use. If not specified, 'notice' is used.
-
-=head2 -f <facility>
-
-The facility to use. If not specified, 'daemon' is used.
-
-=head2 -s <socket>
-
-The socket to use. If not specified, '/var/run/log' is used.
-
-=head2 -t <config file>
+=head2 -c <config file>
 
 This is the config file to use. If not specified, '/usr/local/etc/filesyslogger.toml' is used.
 
@@ -148,6 +132,8 @@ Each TOML table is used for specifying what files to tail
 and forward to syslog. It uses the same keys as above, minus
 'socket', but with the additional key 'file' for specifying
 what file.
+
+File rotation is picked up automatically via POE::Wheel::FollowTail.
 
 For priority, below are the various valid values.
 
