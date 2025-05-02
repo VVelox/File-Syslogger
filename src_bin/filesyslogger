@@ -12,10 +12,20 @@ use TOML            qw(from_toml);
 use File::Syslogger ();
 use File::Slurp     qw(read_file);
 use Getopt::Long    qw( GetOptions );
+use Pod::Usage      qw(pod2usage);
 
 my $version = '0.0.1';
 
-my $help;
+sub main::VERSION_MESSAGE {
+	print 'filesyslogger v. ' . $File::Syslogger::VERSION . "\n";
+	exit 255;
+}
+
+sub main::HELP_MESSAGE {
+	pod2usage( -exitval => 255, -verbose => 2, -output => \*STDOUT, );
+}
+
+my $help_flag;
 my $toml_file = '/usr/local/etc/filesyslogger.toml';
 my $pri;
 my $fac;
@@ -26,22 +36,19 @@ Getopt::Long::Configure('no_ignore_case');
 Getopt::Long::Configure('bundling');
 GetOptions(
 	'c=s'     => \$toml_file,
-	'h'       => \$help,
-	'help'    => \$help,
+	'h'       => \$help_flag,
+	'help'    => \$help_flag,
 	'v'       => \$version_flag,
 	'version' => \$version_flag,
 );
 
 if ($version_flag) {
-	print 'filesyslogger v. ' . $version . "\n";
+	main::VERSION_MESSAGE;
 	exit 255;
 }
 
-if ($help) {
-	print 'filesyslogger v. ' . $version . '
-
--c <config>    Config to use.
-';
+if ($help_flag) {
+	main::HELP_MESSAGE;
 	exit 255;
 }
 
