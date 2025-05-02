@@ -113,8 +113,8 @@ sub run {
 		$opts{program} = 'fileSyslogger';
 	}
 
-	if (!defined( $opts{socket} )) {
-		$opts{socket}="/var/run/log";
+	if ( !defined( $opts{socket} ) ) {
+		$opts{socket} = "/var/run/log";
 	}
 
 	#mapping for severity for constant handling
@@ -134,8 +134,7 @@ sub run {
 	# default to info if none is specified
 	if ( !defined( $opts{priority} ) ) {
 		$opts{priority} = "notice";
-	}
-	else {
+	} else {
 		# one was specified, convert to lower case and make sure it valid
 		$opts{priority} = lc( $opts{priority} );
 		if ( !defined( $sev_mapping{ $opts{priority} } ) ) {
@@ -170,8 +169,7 @@ sub run {
 	# default to system if none is specified
 	if ( !defined( $opts{facility} ) ) {
 		$opts{facility} = 'daemon';
-	}
-	else {
+	} else {
 		# one was specified, convert to lower case and make sure it valid
 		$opts{facility} = lc( $opts{facility} );
 		if ( !defined( $fac_mapping{ $opts{facility} } ) ) {
@@ -197,12 +195,11 @@ sub run {
 			if ( !defined( $fac_mapping{ $opts{facility} } ) ) {
 				die( '"' . $item_fac . '" in "' . $item . '" is not a known facility' );
 			}
-		}
-		else {
+		} else {
 			# none specified, so using default
 			$item_fac = $opts{facility};
 		}
-		$item_fac=$fac_mapping{$item_fac};
+		$item_fac = $fac_mapping{$item_fac};
 
 		# figure out what facility to use for this item
 		my $item_pri;
@@ -213,25 +210,24 @@ sub run {
 			if ( !defined( $fac_mapping{$item_pri} ) ) {
 				die( '"' . $item_pri . '" in "' . $item . '" is not a known facility' );
 			}
-		}
-		else {
+		} else {
 			# none specified, so using default
 			$item_pri = $opts{priority};
 		}
-		$item_pri=$sev_mapping{$item_pri};
+		$item_pri = $sev_mapping{$item_pri};
 
 		# figure out what program name to use
 		my $item_program;
 		if ( defined( $opts{files}{$item}{program} ) ) {
 			$item_program = $opts{files}{$item}{program};
-		}
-		else {
+		} else {
 			# none specified, so using default
 			$item_program = $opts{program};
 		}
 
 		# create the logger that will be used by the POE session
-		my $logger = Log::Syslog::Fast->new( LOG_UNIX, $opts{socket}, 1, $item_fac, $item_pri, hostname, $item_program );
+		my $logger
+			= Log::Syslog::Fast->new( LOG_UNIX, $opts{socket}, 1, $item_fac, $item_pri, hostname, $item_program );
 
 		# create the POE session
 		POE::Session->create(
@@ -250,14 +246,14 @@ sub run {
 		);
 
 		$file_count++;
-	}
+	} ## end foreach my $item ( keys( %{ $opts{files} } ) )
 
 	if ( $file_count == 0 ) {
 		die("No files specified");
 	}
 
 	POE::Kernel->run;
-}
+} ## end sub run
 
 =head1 AUTHOR
 

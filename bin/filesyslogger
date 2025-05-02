@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use TOML qw(from_toml);
 use File::Syslogger;
-use File::Slurp qw(read_file);
+use File::Slurp  qw(read_file);
 use Getopt::Long qw(:config pass_through);
 
 my $version = '0.0.1';
@@ -85,7 +85,7 @@ while ( defined( $toml_keys[$int] ) ) {
 	}
 
 	$int++;
-}
+} ## end while ( defined( $toml_keys[$int] ) )
 
 File::Syslogger->run(
 	facility => $fac,
