@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use POE qw(Wheel::FollowTail);
 use Log::Syslog::Fast ':all';
-use Sys::Hostname;
+use Sys::Hostname qw( hostname );
 
 =head1 NAME
 
@@ -13,11 +13,11 @@ File::Syslogger - Use POE to tail a file and read new lines into syslog.
 
 =head1 VERSION
 
-Version 0.0.2
+Version 0.0.3
 
 =cut
 
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 
 =head1 SYNOPSIS
 
@@ -42,17 +42,17 @@ This will die if there are any config issues.
 
 The following options are optionaal.
 
-    priority - The priority of the logged item.
-          Default is 'notice'.
-    
-    facility - The facility for logging.
-               Default is 'daemon'.
-    
-    program - Name of the program logging.
-              Default is 'fileSyslogger'.
-    
-    socket - The syslogd socket.
-             Default is "/var/run/log"
+    - priority :: The priority of the logged item.
+          Default :: notice
+
+    - facility :: The facility for logging.
+          Default :: daemon
+
+    - program :: Name of the program logging.
+          Default :: fileSyslogger
+
+    - socket :: The syslogd socket.
+        Default :: /var/run/log
 
 The option files is a hash of hashes. It has one mandatory
 key, 'file', which is the file to follow. All the above
@@ -265,8 +265,7 @@ Please report any bugs or feature requests to C<bug-file-syslogger at rt.cpan.or
 the web interface at L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-Syslogger>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
+Or via Github at L<https://github.com/VVelox/File-Syslogger/issues>.
 
 =head1 SUPPORT
 
@@ -279,13 +278,13 @@ You can also look for information at:
 
 =over 4
 
+=item * GitHub
+
+L<https://github.com/VVelox/File-Syslogger>
+
 =item * RT: CPAN's request tracker (report bugs here)
 
 L<https://rt.cpan.org/NoAuth/Bugs.html?Dist=File-Syslogger>
-
-=item * CPAN Ratings
-
-L<https://cpanratings.perl.org/d/File-Syslogger>
 
 =item * Search CPAN
 
@@ -299,7 +298,7 @@ L<https://metacpan.org/release/File-Syslogger>
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is Copyright (c) 2021 by Zane C. Bowers-Hadley.
+This software is Copyright (c) 2025 by Zane C. Bowers-Hadley.
 
 This is free software, licensed under:
 

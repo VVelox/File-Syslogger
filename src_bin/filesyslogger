@@ -1,6 +1,6 @@
 #!perl
 #
-#This software is Copyright (c) 2021 by Zane C. Bowers-Hadley.
+#This software is Copyright (c) 2025 by Zane C. Bowers-Hadley.
 #
 #This is free software, licensed under:
 #
@@ -123,19 +123,24 @@ The file format used is TOML.
 
 The primary and optional keys are as below.
 
-    priority - The priority of the logged item.
-               Default is 'notice'.
-    
-    facility - The facility for logging.
-               Default is 'daemon'.
-    
-    program - Name of the program logging.
-              Default is 'fileSyslogger'.
-    
-    socket - The syslogd socket.
-             Default is "/var/run/log"
+    - priority :: The priority of the logged item.
+          Default :: notice
 
-Each file defined in a TOML table. The keys are as below.
+    - facility :: The facility for logging.
+          Default :: daemon
+
+    - program :: Name of the program logging.
+          Default :: fileSyslogger
+
+    - socket :: The syslogd socket.
+        Default :: /var/run/log
+
+
+Each file defined in a TOML table. `priority`, `facility`, and `program`
+can be used like above.
+
+    - file :: The file to follow. This must be specified
+        Default :: undef
 
 Each TOML table is used for specifying what files to tail
 and forward to syslog. It uses the same keys as above, minus
