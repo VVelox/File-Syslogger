@@ -8,10 +8,10 @@
 
 use strict;
 use warnings;
-use TOML qw(from_toml);
-use File::Syslogger;
-use File::Slurp  qw(read_file);
-use Getopt::Long qw(:config pass_through);
+use TOML            qw(from_toml);
+use File::Syslogger ();
+use File::Slurp     qw(read_file);
+use Getopt::Long    qw( GetOptions );
 
 my $version = '0.0.1';
 
@@ -22,6 +22,8 @@ my $fac;
 my $socket;
 my $program;
 my $version_flag;
+Getopt::Long::Configure('no_ignore_case');
+Getopt::Long::Configure('bundling');
 GetOptions(
 	'c=s'     => \$toml_file,
 	'h'       => \$help,
